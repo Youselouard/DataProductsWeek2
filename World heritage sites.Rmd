@@ -1,0 +1,55 @@
+---
+title: "World heritage sites"
+author: "Youssef"
+date: "8/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## World heritage sites list
+
+World heritage sites are of huge cultural and historical importance. They are a priceless window into our past. 
+
+The map shows the position of each world heritage site as of 2021, its name and its category (cultural, natural or mixed).
+
+The data comes from the UNESCO (https://whc.unesco.org/en/list/). 
+
+
+```{r message = FALSE}
+# Loading the required libraries
+library(leaflet)
+
+# Loading the data
+whs_raw <-read.csv2("whc-sites-2021.csv", sep = ",")
+
+# Subseting the data to only keep variables of interest
+whs <- whs_raw[c("name_en", "category", "longitude","latitude")]
+
+#Renaming the columns to lat and long and converting to numeric
+whs$latitude <- as.numeric(levels(whs$latitude))[whs$latitude]
+whs$longitude <- as.numeric(levels(whs$longitude))[whs$longitude]
+
+#Preparing colors for the map
+colorFunction <- function(categoryValue) {
+  if(categoryValue == "Cultural") {
+    "yellow"
+  } else if (categoryValue == "Natural") {
+    "green"
+  } else {
+    "blue"
+  }
+}
+
+colors <- lapply(whs$category, colorFunction)
+whs$colors <- colors 
+
+#Generating the map
+whs %>%
+  leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(color = whs$colors, popup = whs$name_en, clusterOptions = markerClusterOptions()) %>%
+  addLegend(labels = c("Cultural", "Natural", "Mixed"), colors = c("yellow", "green", "blue"))
+```
